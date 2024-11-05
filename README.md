@@ -1,6 +1,6 @@
 # Spotiterm
 
-Spotiterm is a Golang project designed to enhance your terminal experience with Spotify integration. This tool allows you to control Spotify playback, search for tracks, and manage your playlists directly from the command line.
+Spotiterm is a Golang project designed to enhance your terminal experience with Spotify integration. This tool allows you to control Spotify playback from the command line.
 
 ## Features
 
