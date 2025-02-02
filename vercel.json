@@ -1,0 +1,13 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "api/**/*.go",
+        "use": "@vercel/go"
+      }
+    ],
+    "routes": [
+      { "src": "/api/auth", "dest": "/api/auth/index.go" },
+      { "src": "/api/callback", "dest": "/api/callback/index.go" }
+    ]
+  }
