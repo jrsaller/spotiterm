@@ -21,9 +21,7 @@ var (
 func main() {
 	// Start a temporary HTTP server to handle the callback
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		spotifyauth.CompleteAuthHandler(w, r)
-		client := spotifyauth.Init()
-		clientChan <- client
+		spotifyauth.CompleteAuthHandler(w, r, clientChan)
 	})
 
 	server := &http.Server{Addr: ":8080"}

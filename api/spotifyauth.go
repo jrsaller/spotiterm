@@ -33,14 +33,13 @@ var (
 	state = "abc123"
 )
 
-
 func Handler(w http.ResponseWriter, r *http.Request) {
 	url := spotifyClient.AuthURL(state)
 	fmt.Fprintf(w, "Login to Spotify at the following link, if it doesn't automatically open: %s", url)
-	// http.Redirect(w, r, url, http.StatusFound)
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
-func CompleteAuthHandler(w http.ResponseWriter, r *http.Request) {
+func CompleteAuthHandler(w http.ResponseWriter, r *http.Request, clientChan chan *spotify.Client) {
 	tok, err := spotifyClient.Token(r.Context(), state, r)
 	if err != nil {
 		http.Error(w, "Couldn't get token", http.StatusForbidden)
@@ -63,7 +62,7 @@ func CompleteAuthHandler(w http.ResponseWriter, r *http.Request) {
             </body>
         </html>
     `)
-	ch <- client
+	clientChan <- client
 }
 
 func Init() *spotify.Client {
