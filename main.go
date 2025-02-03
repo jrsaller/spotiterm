@@ -15,10 +15,13 @@ import (
 )
 
 var (
+	state      = ""
 	clientChan = make(chan *spotify.Client)
 )
 
 func main() {
+	helpers.OpenURL("https://spotiterm.vercel.app/api/auth")
+
 	// Start a temporary HTTP server to handle the callback
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		spotifyauth.CompleteAuthHandler(w, r)
@@ -32,8 +35,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-
-	helpers.OpenURL("https://spotiterm.vercel.app/api/auth")
 
 	// Wait for the authenticated client
 	client := <-clientChan
