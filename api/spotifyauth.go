@@ -37,7 +37,7 @@ var (
 func Handler(w http.ResponseWriter, r *http.Request) {
 	url := spotifyClient.AuthURL(state)
 	fmt.Fprintf(w, "Login to Spotify at the following link, if it doesn't automatically open: %s", url)
-	// http.Redirect(w, r, url, http.StatusFound)
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 func CompleteAuthHandler(w http.ResponseWriter, r *http.Request) {
