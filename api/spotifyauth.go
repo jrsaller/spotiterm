@@ -17,7 +17,7 @@ import (
 	sa "github.com/zmb3/spotify/v2/auth"
 )
 
-const redirectURI = "http://spotiterm.vercel.app/api/callback"
+const redirectURI = "http://localhost:8080/callback"
 
 // redirectURI is the OAuth redirect URI for the application.
 // You must register an application at Spotify's developer portal
