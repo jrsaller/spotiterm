@@ -8,20 +8,22 @@
 package spotifyauth
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/jrsaller/spotiterm/internal/helpers"
 	"github.com/zmb3/spotify/v2"
 	sa "github.com/zmb3/spotify/v2/auth"
 )
 
-const redirectURI = "http://localhost:8080/callback"
-
 // redirectURI is the OAuth redirect URI for the application.
 // You must register an application at Spotify's developer portal
 // and enter this value.
+const redirectURI = "http://localhost:8080/callback"
+
 var (
 	spotifyClient = sa.New(
 		sa.WithRedirectURL(redirectURI),
@@ -29,22 +31,54 @@ var (
 		sa.WithClientID(os.Getenv("SPOTIFY_ID")),
 		sa.WithClientSecret(os.Getenv("SPOTIFY_SECRET")),
 	)
-	ch    = make(chan *spotify.Client)
+	ch = make(chan *spotify.Client)
 	state = "abc123"
 )
 
+func Init() *spotify.Client {
+	// first start an HTTP server
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+	// Create an HTTP server
+	server := &http.Server{Addr: ":8080"}
+	http.HandleFunc("/callback", completeAuth)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// log.Println("Got request for:", r.URL.String())
+	})
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
 	url := spotifyClient.AuthURL(state)
 	fmt.Println("Login to Spotify at the following link, if it doesn't automatically open:", url)
-	http.Redirect(w, r, url, http.StatusFound)
+	helpers.OpenURL(url)
+
+	// // wait for auth to complete
+	client := <-ch
+	// Shut down the server gracefully
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown Failed:", err)
+	}
+
+	// // use the client to make calls that require authorization
+	user, err := client.CurrentUser(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("You are logged in as:", user.ID)
+	fmt.Println("You are logged in as:", user.DisplayName)
+	return client
 }
 
-func CompleteAuthHandler(w http.ResponseWriter, r *http.Request) {
+func completeAuth(w http.ResponseWriter, r *http.Request) {
 	tok, err := spotifyClient.Token(r.Context(), state, r)
 	if err != nil {
 		http.Error(w, "Couldn't get token", http.StatusForbidden)
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	if st := r.FormValue("state"); st != state {
 		http.NotFound(w, r)
@@ -64,9 +98,4 @@ func CompleteAuthHandler(w http.ResponseWriter, r *http.Request) {
         </html>
     `)
 	ch <- client
-}
-
-func Init() *spotify.Client {
-	client := <-ch
-	return client
 }
